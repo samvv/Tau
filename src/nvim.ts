@@ -1,7 +1,7 @@
 
 import cp from "child_process"
 import { attach as attachToNvimProc, NeovimClient } from "neovim"
-import { assert } from "./util";
+import { assert, Vec2 } from "./util";
 
 export async function spawnNeovim(): Promise<NeovimClient> {
 
@@ -16,19 +16,18 @@ export async function spawnNeovim(): Promise<NeovimClient> {
   return client;
 }
 
-
 type CursorShape = 'block' | 'horizontal' | 'vertical';
 
 interface ModeInfo {
-  cursor_shape: CursorShape;
-  cell_percentage: number;
-  blinkwait: number;
-  blinkon: number;
-  blinkoff: number;
-  attr_id: number;
-  attr_id_lm: number;
-  short_name: string;
-  name: string;
+  cursor_shape?: CursorShape;
+  cell_percentage?: number;
+  blinkwait?: number;
+  blinkon?: number;
+  blinkoff?: number;
+  attr_id?: number;
+  attr_id_lm?: number;
+  short_name?: string;
+  name?: string;
 }
 
 interface Highlight {
@@ -72,17 +71,20 @@ const SPECIAL_KEYS: Record<string, string> = {
 
 export class NeovimController {
 
-  private cellWidth = 9;
-  private cellHeight = 18;
 
-  private cellBaseline = 4;
+  private backCtx: CanvasRenderingContext2D;
+  private frontCtx: CanvasRenderingContext2D;
 
   private cursor: HTMLDivElement;
-
-  private ctx: CanvasRenderingContext2D;
-  private visibleCtx: CanvasRenderingContext2D;
-
+  private canvas: HTMLCanvasElement;
   private buffer: any;
+
+  private cellWidth = 9;
+  private cellHeight = 18;
+  private cellBaseline = 5;
+  private dpr = window.devicePixelRatio || 1.0;
+  private font = '12px Hack';
+  private cursorOpacity = 0.6;
 
   private cursorStyleEnabled?: boolean;
   private modes?: ModeInfo[];
@@ -90,7 +92,7 @@ export class NeovimController {
   private highlights = new Map<number, Highlight>();
 
   public constructor(
-    private canvas: HTMLCanvasElement,
+    private element: HTMLDivElement,
     private client: NeovimClient,
   ) {
 
@@ -104,33 +106,51 @@ export class NeovimController {
     window.addEventListener('keydown', this.onWindowKeyDown);
 
     this.cursor = document.createElement('div');
+    this.cursor.style.display = 'inline-block';
     this.cursor.style.backgroundColor = 'rgba(255, 255, 255, 0.6)';
     this.cursor.style.position = 'absolute';
     this.cursor.style.height = `${this.cellHeight}px`;
     this.cursor.style.width = `${this.cellWidth}px`;
+    this.cursor.style.transformOrigin = '0 0';
+    this.cursor.style.transform = `translate(0, ${this.cellHeight}px) scale(1, -2)`;
+
     document.body.appendChild(this.cursor);
 
-    const canvasRect = this.canvas.getBoundingClientRect();
-    const cols = Math.floor(canvasRect.width / this.cellWidth);
-    const rows = Math.floor(canvasRect.height / this.cellHeight);
-    const width = canvasRect.width;
-    const height = canvasRect.height;
-    canvas.width = canvasRect.width;
-    canvas.height = canvasRect.height;
-    this.buffer = new OffscreenCanvas(width, height);
+    this.canvas = document.createElement('canvas');
+    element.appendChild(this.canvas);
+    this.buffer = new OffscreenCanvas(800, 600);
 
     client.on('notification', this.onClientNotification);
 
-    client.uiAttach(
+    this.backCtx = this.buffer.getContext('2d')!;
+    this.frontCtx = this.canvas.getContext('2d')!;
+
+    this.init();
+
+  }
+
+  private async init(): Promise<void> {
+
+    this.adjustCanvasSize();
+
+    await document.fonts.load(this.font);
+
+    const [cols, rows] = this.calcGridDimensions();
+    this.client.uiAttach(
        cols,
        rows,
       { rgb: true, ext_linegrid: true }
     );
-
-    this.ctx = this.buffer.getContext('2d')!;
-    this.visibleCtx = canvas.getContext('2d')!;
-
   }
+
+
+  private calcGridDimensions(): Vec2 {
+    const canvasRect = this.canvas.getBoundingClientRect();
+    const cols = Math.floor(canvasRect.width / this.cellWidth);
+    const rows = Math.floor(canvasRect.height / this.cellHeight);
+    return [cols, rows];
+  }
+
 
   private onWindowKeyDown = (e: KeyboardEvent) => {
     let vimKey: string = SPECIAL_KEYS[e.key];
@@ -161,18 +181,50 @@ export class NeovimController {
     this.client.input(out);
   }
 
-  private onWindowResize = (_: UIEvent) => {
+  public async setFont(name: string): Promise<void> {
+    await document.fonts.load(name);
+    this.font = name;
+    await this.client.command('redraw');
+  }
 
-    const canvasRect = this.canvas.getBoundingClientRect();
-    const cols = Math.floor(canvasRect.width / this.cellWidth);
-    const rows = Math.floor(canvasRect.height / this.cellHeight);
-    const width = canvasRect.width;
-    const height = canvasRect.height;
-    this.canvas.width = canvasRect.width;
-    this.canvas.height = canvasRect.height;
+  public setMode(mode: ModeInfo): void {
+    switch (mode.cursor_shape) {
+      case 'block':
+        this.cursor.style.width = `${this.cellWidth}px`;
+        this.cursor.style.height = `${this.cellHeight}px`;
+        break;
+      case 'horizontal': {
+        const size = (mode.cell_percentage ?? 100) / 100;
+        this.cursor.style.width = `${size * this.cellWidth}px`;
+        this.cursor.style.height = `1px`;
+        break;
+      }
+      case 'vertical':
+      {
+        const size = (mode.cell_percentage ?? 100) / 100;
+        this.cursor.style.width = `1px`;
+        this.cursor.style.height = `${size * this.cellHeight}px`;
+        break;
+      }
+    }
+  }
+
+  private adjustCanvasSize(): void {
+    const rect = this.element.getBoundingClientRect();
+    const width = rect.width * this.dpr;
+    const height = rect.height * this.dpr;
+    this.canvas.style.width = `${rect.width}px`;
+    this.canvas.style.height = `${rect.height}px`;
+    this.canvas.width = width;
+    this.canvas.height = height;
     this.buffer.width = width;
     this.buffer.height = height;
+    this.backCtx.scale(this.dpr, this.dpr);
+  }
 
+  private onWindowResize = (_: UIEvent) => {
+    this.adjustCanvasSize();
+    const [cols, rows] = this.calcGridDimensions();
     this.client.uiTryResize(cols, rows);
   }
 
@@ -197,8 +249,12 @@ export class NeovimController {
             switch (name) {
 
               case 'set_title':
+              {
+                const [title] = args;
                 // TODO figure out what to do with the window
+                document.title = title;
                 break;
+              }
 
               case 'set_icon':
                 // TODO figure out what to do with the window
@@ -221,7 +277,7 @@ export class NeovimController {
               case 'mode_change':
               {
                 const [mode_name, mode_idx] = args;
-                this.activeMode = this.modes![mode_idx];
+                this.setMode(this.modes![mode_idx]);
                 break;
               }
 
@@ -244,8 +300,8 @@ export class NeovimController {
 
               case 'flush':
               {
-                const data = this.ctx.getImageData(0, 0, this.buffer.width, this.buffer.height);
-                this.visibleCtx.putImageData(data, 0, 0);
+                const data = this.backCtx.getImageData(0, 0, this.buffer.width, this.buffer.height);
+                this.frontCtx.putImageData(data, 0, 0);
                 break;
               }
 
@@ -299,14 +355,15 @@ export class NeovimController {
                   const bg = hl.reverse ? (hl.foreground ?? defaultFg) : (hl.background ?? defaultBg);
                   const x = col * this.cellWidth;
                   const y = row * this.cellHeight;
-                  this.ctx.fillStyle = makeRGB(bg);
-                  this.ctx.fillRect(x, y, this.cellWidth, this.cellHeight);
-                  this.ctx.fillStyle = makeRGB(fg);
-                  this.ctx.fillText(text, x, y + this.cellHeight - this.cellBaseline);
+                  console.log('cell', x, y)
+                  this.backCtx.fillStyle = makeRGB(bg);
+                  this.backCtx.fillRect(x, y, this.cellWidth, this.cellHeight);
+                  this.backCtx.fillStyle = makeRGB(fg);
+                  this.backCtx.fillText(text, x, y + this.cellHeight - this.cellBaseline);
                   col++;
                 }
 
-                this.ctx.font = '12px monospace';
+                this.backCtx.font = this.font;
 
                 for (const cell of cells) {
                   if (cell.length === 1) {
@@ -326,8 +383,8 @@ export class NeovimController {
 
               case 'grid_clear':
               {
-                this.ctx.fillStyle = makeRGB(this.highlights.get(0)!.background!);
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.backCtx.fillStyle = makeRGB(this.highlights.get(0)!.background!);
+                this.backCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 break;
               }
 
@@ -337,9 +394,10 @@ export class NeovimController {
 
               case 'grid_cursor_goto':
               {
-                const [id, row, column] = args;
+                const [grid_id, row, column] = args;
                 const x = this.cellWidth * column;
                 const y = this.cellHeight * row;
+                console.log('cursor', x, y)
                 this.cursor.style.left = `${x}px`;
                 this.cursor.style.top = `${y}px`;
                 break;
@@ -358,6 +416,7 @@ export class NeovimController {
             }
 
           }
+
         }
 
         break;

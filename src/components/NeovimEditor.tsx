@@ -9,7 +9,7 @@ export interface NeovimEditorProps {
 
 export const NeovimEditor: React.FunctionComponent<NeovimEditorProps> = ({ client }) => {
 
-  const elementRef = useRef<HTMLCanvasElement>(null);
+  const elementRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<NeovimController | null>(null);
 
   useEffect(() => {
@@ -26,7 +26,10 @@ export const NeovimEditor: React.FunctionComponent<NeovimEditorProps> = ({ clien
 
   }, [ client, elementRef.current ]);
 
-  return <canvas ref={elementRef} style={{ height: '100vh', width: '100%' }} />
+  return (
+    <div ref={elementRef} style={{ height: '100vh' }} />
+  );
+
 }
 
 export default NeovimEditor;

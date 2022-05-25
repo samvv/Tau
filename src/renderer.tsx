@@ -15,8 +15,6 @@ import NeovimEditor from "./components/NeovimEditor"
 
   const client = await spawnNeovim();
 
-  console.log(await client.line)
-
   function View() {
     return (
       <NeovimEditor client={client} />
@@ -24,9 +22,5 @@ import NeovimEditor from "./components/NeovimEditor"
   }
 
   root.render(<View />);
-
-  if (isDebug) {
-    setTimeout(() => { rootElement.focus(); }, 1000);
-  }
 
 })();
