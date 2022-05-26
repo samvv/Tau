@@ -155,6 +155,7 @@ export class NeovimController {
 
 
   private onWindowKeyDown = (e: KeyboardEvent) => {
+    e.preventDefault();
     let vimKey: string = SPECIAL_KEYS[e.key];
     let vimModifiers = '';
     if (e.altKey) {
