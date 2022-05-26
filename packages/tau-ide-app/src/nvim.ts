@@ -114,7 +114,7 @@ export class NeovimController {
     this.cursor.style.height = `${this.cellHeight}px`;
     this.cursor.style.width = `${this.cellWidth}px`;
     this.cursor.style.transformOrigin = '0 0';
-    this.cursor.style.transform = `translate(0, ${this.cellHeight}px) scale(1, -2)`;
+    this.cursor.style.transform = `translate(0, ${this.cellHeight}px) scale(1, -1)`;
 
     element.appendChild(this.cursor);
 
