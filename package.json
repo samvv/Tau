@@ -9,7 +9,7 @@
     "packages/tau-plugin-lldb"
   ],
   "scripts": {
-    "start": "npm start -w tau-ide-app",
+    "start": "bake dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -26,5 +26,8 @@
   "bugs": {
     "url": "https://github.com/samvv/Tau/issues"
   },
-  "homepage": "https://github.com/samvv/Tau#readme"
+  "homepage": "https://github.com/samvv/Tau#readme",
+  "devDependencies": {
+    "@samvv/bake": "^0.1.5"
+  }
 }
