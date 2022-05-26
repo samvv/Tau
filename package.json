@@ -1,11 +1,15 @@
 {
-  "name": "neoide",
+  "name": "tau-ide-workspace",
+  "private": true,
   "version": "0.0.1",
-  "description": "A Neovim-based code editor",
-  "main": "dist/main.bundle.js",
+  "description": "The main workspace of the Tau IDE",
+  "workspaces": [
+    "packages/tau-ide",
+    "packages/tau-ide-app",
+    "packages/tau-plugin-lldb"
+  ],
   "scripts": {
-    "dev": "webpack serve --mode development",
-    "start": "electron .",
+    "start": "npm start -w tau-ide-app",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -15,26 +19,12 @@
   ],
   "author": "Sam Vervaeck",
   "license": "MIT",
-  "dependencies": {
-    "@emotion/react": "^11.9.0",
-    "electron": "^19.0.0",
-    "neovim": "^4.10.1",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samvv/Tau.git"
   },
-  "devDependencies": {
-    "@babel/core": "^7.18.2",
-    "@babel/plugin-proposal-class-properties": "^7.17.12",
-    "@babel/preset-env": "^7.18.2",
-    "@babel/preset-react": "^7.17.12",
-    "@babel/preset-typescript": "^7.17.12",
-    "@emotion/babel-plugin": "^11.9.2",
-    "@types/react": "^18.0.9",
-    "@types/react-dom": "^18.0.5",
-    "babel-loader": "^8.2.5",
-    "copy-webpack-plugin": "^11.0.0",
-    "webpack": "^5.72.1",
-    "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.9.0"
-  }
+  "bugs": {
+    "url": "https://github.com/samvv/Tau/issues"
+  },
+  "homepage": "https://github.com/samvv/Tau#readme"
 }

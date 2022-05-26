@@ -355,7 +355,6 @@ export class NeovimController {
                   const bg = hl.reverse ? (hl.foreground ?? defaultFg) : (hl.background ?? defaultBg);
                   const x = col * this.cellWidth;
                   const y = row * this.cellHeight;
-                  console.log('cell', x, y)
                   this.backCtx.fillStyle = makeRGB(bg);
                   this.backCtx.fillRect(x, y, this.cellWidth, this.cellHeight);
                   this.backCtx.fillStyle = makeRGB(fg);
@@ -397,7 +396,6 @@ export class NeovimController {
                 const [grid_id, row, column] = args;
                 const x = this.cellWidth * column;
                 const y = this.cellHeight * row;
-                console.log('cursor', x, y)
                 this.cursor.style.left = `${x}px`;
                 this.cursor.style.top = `${y}px`;
                 break;

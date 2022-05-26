@@ -54,6 +54,7 @@ module.exports = [
       new CopyPlugin({ 
         patterns: [
           { from: 'index.html', to: distDir },
+          { from: 'fonts', to: path.join(distDir, 'fonts') },
         ]
       }),
       new webpack.DefinePlugin(constants)
@@ -75,6 +76,7 @@ module.exports = [
     },
     externalsType: 'commonjs-module',
     module: {
+      exprContextCritical: false,
       rules: [
         {
           test: /\.tsx?/,

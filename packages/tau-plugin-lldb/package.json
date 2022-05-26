@@ -1,0 +1,22 @@
+{
+  "name": "tau-plugin-lldb",
+  "version": "0.0.1",
+  "description": "Integrate LLDB into the Tau IDE",
+  "main": "lib/index.js",
+  "scripts": {
+    "dev": "tsc -w --preserveWatchOutput",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "lldb",
+    "tau-ide",
+    "tau-ide-plugin",
+    "debugging",
+    "development"
+  ],
+  "author": "Sam Vervaeck",
+  "license": "MIT",
+  "dependencies": {
+    "tau-ide": "^0.0.1"
+  }
+}

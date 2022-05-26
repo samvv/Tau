@@ -1,0 +1,20 @@
+{
+  "name": "tau-ide",
+  "version": "0.0.1",
+  "description": "Connect to the plugin API of the Tau IDE",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "dev": "tsc -w --preserveWatchOutput",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tau-ide",
+    "api"
+  ],
+  "author": "Sam Vervaeck",
+  "license": "MIT",
+  "types": "./lib/index.d.ts"
+}
