@@ -6,7 +6,7 @@ import { createRoot } from "react-dom/client"
 import { spawnNeovim } from "./nvim"
 
 import NeovimEditor from "./components/NeovimEditor"
-import type { TauAPI } from "tau-ide/src/types"
+import { TauAPI, TauPluginExports } from "tau-ide"
 
 window.TAU_IDE = {} as TauAPI;
 
@@ -24,14 +24,6 @@ async function loadPackageJson(packageJsonPath: string) {
 
   const client = window.TAU_IDE.client = await spawnNeovim();
 
-  function View() {
-    return (
-      <NeovimEditor client={client} />
-    );
-  }
-
-  root.render(<View />);
-
   // FIXME This path is currently hard-coded and should be made more robust
   const packagesDir = path.resolve('..');
 
@@ -39,12 +31,26 @@ async function loadPackageJson(packageJsonPath: string) {
   // NodeJS 'require'-functiom
   const dynamicRequire = eval('require');
 
+  const plugins: { name: string; exports: TauPluginExports}[] = [];
+
   for (const dirname of await fs.promises.readdir(packagesDir)) {
     const packageJson = await loadPackageJson(path.join(packagesDir, dirname, 'package.json'));
     if (packageJson.keywords && packageJson.keywords.indexOf('tau-ide-plugin') !== -1) {
       const plugin = dynamicRequire(path.join(packagesDir, dirname));
-      console.log('here', plugin)
+      plugins.push({ name: packageJson.name, exports: plugin });
     }
   }
 
+  const View = () => {
+    return (
+      <div>
+        {plugins.map(plugin => <div key={plugin.name}>{plugin.exports.render()}</div>)}
+        <NeovimEditor client={client} />
+      </div>
+    );
+  }
+
+  root.render(<View />);
+
 })();
+

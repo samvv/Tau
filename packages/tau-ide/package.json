@@ -16,5 +16,15 @@
   ],
   "author": "Sam Vervaeck",
   "license": "MIT",
-  "types": "./lib/index.d.ts"
+  "types": "./lib/index.d.ts",
+  "peerDependencies": {
+    "@emotion/react": "^11.9.0",
+    "@emotion/styled": "^11.8.1",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.9",
+    "@types/react-dom": "^18.0.5"
+  }
 }

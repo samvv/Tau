@@ -105,6 +105,8 @@ export class NeovimController {
     window.addEventListener('resize', this.onWindowResize);
     window.addEventListener('keydown', this.onWindowKeyDown);
 
+    element.style.position = 'relative';
+
     this.cursor = document.createElement('div');
     this.cursor.style.display = 'inline-block';
     this.cursor.style.backgroundColor = 'rgba(255, 255, 255, 0.6)';
@@ -114,7 +116,7 @@ export class NeovimController {
     this.cursor.style.transformOrigin = '0 0';
     this.cursor.style.transform = `translate(0, ${this.cellHeight}px) scale(1, -2)`;
 
-    document.body.appendChild(this.cursor);
+    element.appendChild(this.cursor);
 
     this.canvas = document.createElement('canvas');
     element.appendChild(this.canvas);
@@ -323,7 +325,7 @@ export class NeovimController {
                 highlight.foreground = fg;
                 highlight.background = bg;
                 highlight.special = sp;
-                document.body.style.backgroundColor = makeRGB(bg);
+                this.canvas.style.backgroundColor = makeRGB(bg);
                 break;
               }
 
