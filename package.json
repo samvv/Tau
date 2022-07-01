@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "description": "The main workspace of the Tau IDE",
   "workspaces": [
+    "packages/tau-ui",
     "packages/tau-ide",
     "packages/tau-ide-app",
     "packages/tau-plugin-lldb"
