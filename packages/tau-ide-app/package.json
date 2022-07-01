@@ -20,7 +20,8 @@
     "electron": "^19.0.7",
     "neovim": "^4.10.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "tau-ui": "^0.0.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.18.6",
